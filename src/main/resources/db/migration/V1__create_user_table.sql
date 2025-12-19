@@ -2,7 +2,7 @@
 
 CREATE TABLE `users` (
   `id` bigint NOT NULL AUTO_INCREMENT,
-  `username` varchar(255) NOT NULL,
+  `name` varchar(255) NOT NULL,
   `email` varchar(255) NOT NULL,
   `hashed_password` varchar(255) NOT NULL,
   `roles` varchar(255) DEFAULT NULL,
