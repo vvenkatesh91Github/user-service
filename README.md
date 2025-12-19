@@ -81,3 +81,8 @@ The User Service exposes RESTful endpoints for user management, accessible under
   "email": "john.doe@example.com",
   "password": "securepassword123"
 }
+```
+
+# Note:
+* This service is hosted https://auth.localhost:8081
+* Ensure SSL is configured for secure communication. (https://github.com/vvenkatesh91Github/api-gateway/blob/master/README.md)
