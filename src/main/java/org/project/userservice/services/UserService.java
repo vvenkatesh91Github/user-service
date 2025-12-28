@@ -1,6 +1,7 @@
 package org.project.userservice.services;
 
 import lombok.RequiredArgsConstructor;
+import net.spy.memcached.MemcachedClient;
 import org.project.userservice.models.User;
 import org.project.userservice.repositories.UserRepository;
 import org.springframework.stereotype.Service;
@@ -12,9 +13,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
+    private final MemcachedClient memcachedClient;
+
+    private static final String USERS_LIST_KEY = "users:list";
+    private static final int CACHE_TTL_SECONDS = 30;
 
     public User createUser(User user) {
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+        memcachedClient.delete(USERS_LIST_KEY);
+        return saved;
     }
 
     public User getUser(Long id) {
@@ -28,7 +35,23 @@ public class UserService {
     }
 
     public List<User> getAllUsers() {
-        return userRepository.findAll();
+        try {
+            Object cached = memcachedClient.get(USERS_LIST_KEY);
+            if (cached != null) {
+                return (List<User>) cached;
+            }
+        } catch (Exception e) {
+            // Log memcached read error
+        }
+        List<User> users = userRepository.findAll();
+
+        try {
+            memcachedClient.set(USERS_LIST_KEY, CACHE_TTL_SECONDS, users);
+        } catch (Exception e) {
+            // Log memcached write error
+        }
+
+        return users;
     }
 
     public User updateUser(Long id, User user) {
@@ -38,11 +61,15 @@ public class UserService {
         existing.setRoles(user.getRoles());
         existing.setStatus(user.getStatus());
         existing.setUpdatedAt(LocalDateTime.now());
-        return userRepository.save(existing);
+
+        User updated = userRepository.save(existing);
+        memcachedClient.delete(USERS_LIST_KEY);
+        return updated;
     }
 
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
+        memcachedClient.delete(USERS_LIST_KEY);
     }
 }
 

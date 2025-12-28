@@ -11,6 +11,7 @@ It is built using **Spring Boot** and utilizes **Flyway** for database migration
 * **Database:** PostgreSQL (Configurable via application properties)
 * **Database Migration:** Flyway
 * **Data Access:** Spring Data JPA / Hibernate
+* **Caching:** Memcached
 
 ---
 
@@ -63,17 +64,52 @@ The initial migration file `V1__create_user_table.sql` will create the necessary
 
 ---
 
+### 🧩 Caching with Memcached
+
+This service supports caching using **Memcached**. To enable caching, you need to install and run Memcached locally.
+
+### Install Memcached
+
+#### On macOS (using Homebrew):
+```bash
+brew install memcached
+```
+
+#### On Ubuntu/Debian:
+```bash
+sudo apt-get update
+sudo apt-get install memcached
+```
+
+#### On Windows:
+Refer to the official Memcached documentation: https://memcached.org/downloads
+
+### Run Memcached on 127.0.0.1:11211
+
+Start Memcached with the following command to listen on localhost (127.0.0.1) and port 11211:
+
+```bash
+memcached -l 127.0.0.1 -p 11211
+```
+
+Memcached will now be running and accessible at 127.0.0.1:11211, enabling caching for the user service.
+
+---
+
 ## 🗺️ API Endpoints (CRUD)
 
-The User Service exposes RESTful endpoints for user management, accessible under the base path `/api/v1/users`.
+The User Service exposes RESTful endpoints for user management, accessible under the base path `/users`.
 
-### 1. Create User (Register)
+| Method   | Endpoint              | Description                        |
+|----------|----------------------|------------------------------------|
+| POST     | `/users`             | Creates a new user account.        |
+| GET      | `/users/{id}`        | Retrieves a user by ID.            |
+| GET      | `/users/email/{email}` | Retrieves a user by email.         |
+| GET      | `/users`             | Retrieves all users.               |
+| PUT      | `/users/{id}`        | Updates a user by ID.              |
+| DELETE   | `/users/{id}`        | Deletes a user by ID.              |
 
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `POST` | `/api/v1/users` | Creates a new user account. |
-
-**Request Body Example:**
+**Request Body Example for Creating a User:**
 
 ```json
 {
@@ -84,5 +120,5 @@ The User Service exposes RESTful endpoints for user management, accessible under
 ```
 
 # Note:
-* This service is hosted https://auth.localhost:8081
+* This service is hosted at https://auth.localhost:8081
 * Ensure SSL is configured for secure communication. (https://github.com/vvenkatesh91Github/api-gateway/blob/master/README.md)
