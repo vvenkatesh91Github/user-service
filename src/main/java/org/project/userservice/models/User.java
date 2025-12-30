@@ -23,6 +23,9 @@ public class User implements Serializable {
     private String email;
 
     @Column(nullable = false)
+    private String phoneNumber;
+
+    @Column(nullable = false)
     private String hashedPassword;
 
     private String roles; // e.g., "ROLE_USER,ROLE_ADMIN"

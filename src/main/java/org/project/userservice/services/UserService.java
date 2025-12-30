@@ -34,6 +34,11 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
+    public User getUserByPhoneNumber(String phoneNumber) {
+        return userRepository.findByPhoneNumber(phoneNumber)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
     public List<User> getAllUsers() {
         try {
             Object cached = memcachedClient.get(USERS_LIST_KEY);
