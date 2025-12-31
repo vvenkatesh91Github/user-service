@@ -2,6 +2,8 @@ package org.project.userservice.services;
 
 import lombok.RequiredArgsConstructor;
 import net.spy.memcached.MemcachedClient;
+import org.project.userservice.clients.NotificationClient;
+import org.project.userservice.events.*;
 import org.project.userservice.models.User;
 import org.project.userservice.repositories.UserRepository;
 import org.springframework.stereotype.Service;
@@ -14,6 +16,7 @@ import java.util.List;
 public class UserService {
     private final UserRepository userRepository;
     private final MemcachedClient memcachedClient;
+    private final NotificationClient notificationClient;
 
     private static final String USERS_LIST_KEY = "users:list";
     private static final int CACHE_TTL_SECONDS = 30;
@@ -30,8 +33,12 @@ public class UserService {
     }
 
     public User getUserByEmail(String email) {
-        return userRepository.findByEmail(email)
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+        // Test user creation notification
+        NotificationEvent userCreatedEvent = new UserCreatedEvent(user.getId(), user.getEmail(), user.getPhoneNumber());
+        notificationClient.notifyUser(userCreatedEvent);
+        return user;
     }
 
     public User getUserByPhoneNumber(String phoneNumber) {
