@@ -119,6 +119,124 @@ The User Service exposes RESTful endpoints for user management, accessible under
 }
 ```
 
+## Kafka integration
+
+### Step 1: Install Kafka (without Docker) on Mac/Linux
+
+**Download Kafka**
+
+```bash
+wget https://downloads.apache.org/kafka/4.1.1/kafka_2.13-4.1.1.tgz
+```
+
+**Extract Kafka**
+
+```bash
+tar -xvzf kafka_2.13-4.1.1.tgz
+cd kafka_2.13-4.1.1
+```
+
+**Check folder structure**
+
+```bash
+ls
+# bin  config  libs  LICENSE  NOTICE  site-docs
+```
+
+### Step 2: Format Kafka Storage for KRaft (No Zookeeper)
+
+Kafka 4.x uses KRaft mode (no Zookeeper). You need to create a cluster ID first.
+
+```bash
+# generate a cluster ID
+CLUSTER_ID=$(bin/kafka-storage.sh random-uuid)
+echo $CLUSTER_ID
+
+# format the controller storage
+bin/kafka-storage.sh format \
+  -t $CLUSTER_ID \
+  -c config/controller.properties \
+  --standalone
+
+# format the broker storage
+bin/kafka-storage.sh format \
+  -t $CLUSTER_ID \
+  -c config/broker.properties
+```
+
+✅ Tip: Make sure log.dirs in controller.properties and broker.properties exists or Kafka will fail.
+
+### Step 3: Start Kafka in Two Terminals
+
+**Terminal 1 — Start the Controller**
+```bash
+bin/kafka-server-start.sh config/controller.properties
+```
+
+**Terminal 2 — Start the Broker**
+```bash
+bin/kafka-server-start.sh config/broker.properties
+```
+
+Both terminals should start without fatal errors.
+
+### Step 4: Create a Topic
+
+```bash
+bin/kafka-topics.sh \
+  --bootstrap-server localhost:9092 \
+  --create \
+  --topic notification.events \
+  --partitions 1 \
+  --replication-factor 1
+```
+
+**Check topic:**
+
+```bash
+bin/kafka-topics.sh --bootstrap-server localhost:9092 --list
+```
+
+### Step 5: Test Kafka via Console
+
+**Terminal 3 — Producer (send events manually)**
+```bash
+bin/kafka-console-producer.sh \
+  --bootstrap-server localhost:9092 \
+  --topic notification.events
+```
+
+Type messages:
+
+```json
+{"eventType":"USER_CREATED","userId":1,"email":"admin@noreply.com","phoneNumber":"+91 00000 00000"}
+```
+
+**Terminal 4 — Consumer (read events manually)**
+```bash
+bin/kafka-console-consumer.sh \
+  --bootstrap-server localhost:9092 \
+  --topic notification.events \
+  --from-beginning
+```
+
+You should see the message from Terminal 3 appear here.
+
+### Step 6: Integrate Kafka in Microservices
+
+#### 6a. User-Service (Producer)
+
+`application.properties`:
+
+```properties
+spring.kafka.bootstrap-servers=127.0.0.1:9092
+spring.kafka.producer.key-serializer=org.apache.kafka.common.serialization.StringSerializer
+spring.kafka.producer.value-serializer=org.springframework.kafka.support.serializer.JsonSerializer
+spring.kafka.producer.acks=all
+spring.kafka.producer.retries=3
+```
+
 # Note:
 * This service is hosted at https://auth.localhost:8081
 * Ensure SSL is configured for secure communication. (https://github.com/vvenkatesh91Github/api-gateway/blob/master/README.md)
+

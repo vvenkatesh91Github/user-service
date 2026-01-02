@@ -17,6 +17,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final MemcachedClient memcachedClient;
     private final NotificationClient notificationClient;
+    private final NotificationEventProducer eventProducer;
 
     private static final String USERS_LIST_KEY = "users:list";
     private static final int CACHE_TTL_SECONDS = 30;
@@ -37,7 +38,9 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         // Test user creation notification
         NotificationEvent userCreatedEvent = new UserCreatedEvent(user.getId(), user.getEmail(), user.getPhoneNumber());
-        notificationClient.notifyUser(userCreatedEvent);
+//        Commented sync notification to use async event-driven approach
+//        notificationClient.notifyUser(userCreatedEvent);
+        eventProducer.publish(userCreatedEvent);
         return user;
     }
 
