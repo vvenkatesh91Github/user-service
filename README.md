@@ -219,6 +219,22 @@ bin/kafka-console-consumer.sh \
   --topic notification.events \
   --from-beginning
 ```
+### Step 5.1: To View Kafka in web ui
+```bash
+curl -LO https://github.com/obsidiandynamics/kafdrop/releases/download/4.0.2/kafdrop-4.0.2.jar
+```
+
+```bash
+java -jar kafdrop-4.0.2.jar --kafka.brokerConnect=localhost:9092
+```
+Note: If your local Kafka is running on a different port than 9092, change it in the command above.
+Access: Open your browser to http://localhost:9000
+
+If you want to open kafdrop on a different port, use the command below:
+```bash
+java -jar kafdrop-4.0.2.jar --kafka.brokerConnect=localhost:9092 --server.port=9001 --management.server.port=9001
+```
+Access: Open your browser to http://localhost:9001
 
 You should see the message from Terminal 3 appear here.
 
